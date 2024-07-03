@@ -29,6 +29,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .setup(|_, api| {
             #[cfg(target_os = "android")]
             android::init(api)?;
+            let _ = api;
             Ok(())
         })
         .build()

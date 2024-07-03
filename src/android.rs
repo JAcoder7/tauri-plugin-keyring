@@ -52,9 +52,8 @@ pub fn init<R: Runtime, C: DeserializeOwned>(
 /// The concrete Android credential
 #[derive(Debug)]
 pub struct AndroidCredential<R:Runtime> {
-    pub target: String,
-    pub service: String,
-    pub user: String,
+    pub file: String,
+    pub key: String,
     pub plugin_handle: PluginHandle<R>
 }
 
@@ -67,8 +66,8 @@ impl<R:Runtime> CredentialApi for AndroidCredential<R> {
     /// be cleared, so calling again will set the password.
     fn set_password(&self, password: &str) -> Result<()> {
         let _: std::result::Result<SetResponse, tauri::plugin::mobile::PluginInvokeError>=self.plugin_handle.run_mobile_plugin("setPassword", SetRequest{
-            file: self.target.clone(),
-            key: self.user.clone(),
+            file: self.file.clone(),
+            key: self.key.clone(),
             value: password.to_string(),
         });
         Ok(())
@@ -80,8 +79,8 @@ impl<R:Runtime> CredentialApi for AndroidCredential<R> {
     /// be returned instead of a password.
     fn get_password(&self) -> Result<String> {
         let res: std::result::Result<GetResponse, tauri::plugin::mobile::PluginInvokeError> = self.plugin_handle.run_mobile_plugin("getPassword", GetRequest {
-            file: self.target.clone(),
-            key: self.user.clone(),
+            file: self.file.clone(),
+            key: self.key.clone(),
         });
         match res {
             Ok(res) => match res.value {
@@ -101,8 +100,8 @@ impl<R:Runtime> CredentialApi for AndroidCredential<R> {
     /// will be returned.
     fn delete_password(&self) -> Result<()> {
         let res: std::result::Result<GetResponse, tauri::plugin::mobile::PluginInvokeError> = self.plugin_handle.run_mobile_plugin("deletePassword", GetRequest {
-            file: self.target.clone(),
-            key: self.user.clone(),
+            file: self.file.clone(),
+            key: self.key.clone(),
         });
         match res {
             Ok(_) => Ok(()),
@@ -123,15 +122,13 @@ impl<R:Runtime> AndroidCredential<R> {
     fn new_with_target(target: Option<&str>, service: &str, user: &str, plugin_handle: PluginHandle<R>) -> Result<Self> {
         match target{
             Some(target) => Ok(AndroidCredential{
-                target: target.to_string(),
-                service: service.to_string(),
-                user: user.to_string(),
+                file: target.to_string(),
+                key: format!("{user}.{service}"),
                 plugin_handle: plugin_handle,
             }),
             None => Ok(AndroidCredential{
-                target: format!("{user}.{service}"),
-                service: service.to_string(),
-                user: user.to_string(),
+                file: service.to_string(),
+                key: user.to_string(),
                 plugin_handle: plugin_handle,
             })
         }
